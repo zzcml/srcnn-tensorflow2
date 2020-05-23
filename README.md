@@ -1,6 +1,7 @@
 # srcnn-tensorflow2
 Tensorflow implementation of Convolutional Neural Networks for super-resolution. The original Matlab and Caffe from official website can be found [here](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN.html).
-
+## PrepareData
+Download training and test data from [baiduyun](https://pan.baidu.com/s/1QuIx2FlxowxAzr_-rrPGYQ) code: dtvj
 ## Prerequisites
  * Tensorflow 2.1
  * Scipy version > 0.18 ('mode' option from scipy.misc.imread function)
