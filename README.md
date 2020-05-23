@@ -1,6 +1,6 @@
 # srcnn-tensorflow2
 Tensorflow implementation of Convolutional Neural Networks for super-resolution. The original Matlab and Caffe from official website can be found [here](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN.html).
-## PrepareData
+## Prepare Data
 Download training and test data from [baiduyun](https://pan.baidu.com/s/1QuIx2FlxowxAzr_-rrPGYQ) code: dtvj
 Then create a new profile named 'checkpoint' and put data into it
 ## Prerequisites
