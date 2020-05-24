@@ -2,7 +2,8 @@
 Tensorflow implementation of Convolutional Neural Networks for super-resolution. The original Matlab and Caffe from official website can be found [here](http://mmlab.ie.cuhk.edu.hk/projects/SRCNN.html).
 ## Prepare Data
 Download training and test data from [baiduyun](https://pan.baidu.com/s/1QuIx2FlxowxAzr_-rrPGYQ) code: dtvj
-Then create a new profile named 'checkpoint' and put data into it
+Then create a new profile named 'checkpoint' and put data into it.
+###Don't need download the data anymore, i have achive make own datasets by use a function 'input_setup', just put image in profile 'Train' and 'Test' is OK.
 ## Prerequisites
  * Tensorflow 2.1
  * Scipy version > 0.18 ('mode' option from scipy.misc.imread function)
@@ -12,9 +13,8 @@ Then create a new profile named 'checkpoint' and put data into it
 This code requires Tensorflow. Also scipy is used instead of Matlab or OpenCV. Especially, installing OpenCV at Linux is sort of complicated. So, with reproducing this paper, I used scipy instead. For more imformation about scipy, click [here](https://www.scipy.org/).
 
 ## Usage
-For training, `python train.py`
-<br>
-For testing,  `python test.py`
+For training, `run train.py`set '--is_train == True'
+For training, `run train.py`set '--is_train == False'
 
 ## Result
 working！
