@@ -1,4 +1,3 @@
-from srcnn import SRCNN
 from utils import (
   read_data,
   input_setup,
