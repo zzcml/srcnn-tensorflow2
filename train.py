@@ -6,13 +6,14 @@ from utils import (
   merge
 )
 import numpy as np
+import datetime
 import tensorflow as tf
 import time
 import pprint
 import os
 import argparse
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint
-
+import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser(description='SRCNN Training')
 parser.add_argument("--epoch", default=15000, type=int, help="Number of epoch [15000]")
 parser.add_argument("--batch_size", default=16, type=int, help="The size of batch images [128]")
@@ -23,12 +24,19 @@ parser.add_argument("--learning_rate", default=1e-4, type=int,
 parser.add_argument("--c_dim", default=1, type=int, help="Dimension of image color. [1]")
 parser.add_argument("--scale", default=3, type=int, help="The size of scale factor for preprocessing input image [3]")
 parser.add_argument("--stride", default=14, type=int, help="The size of stride to apply input image [14]")
-parser.add_argument("--checkpoint_dir", default="checkpoint", type=str, help="Name of checkpoint directory [checkpoint]")
+parser.add_argument("--checkpoint_dir", default="checkpoint/", type=str, help="Name of checkpoint directory [checkpoint]")
 parser.add_argument("--sample_dir", default="sample", type=str, help="Name of sample directory [sample]")
 parser.add_argument("--is_train", default=True, type=bool, help="True for training, False for testing [True]")
 args, unknown = parser.parse_known_args()
 
 pp = pprint.PrettyPrinter()
+def plot_graphs(history, string):
+    plt.plot(history.history[string])
+    plt.plot(history.history['val_'+string])
+    plt.xlabel("Epochs")
+    plt.ylabel(string)
+    plt.legend([string, 'val_'+string])
+    plt.show()
 
 def createmodel(args):
     model = tf.keras.Sequential()
@@ -49,17 +57,22 @@ if args.is_train:
     data_dir = 'checkpoint/train.h5'
     train_data, train_label = read_data(data_dir)
     srcnn = createmodel(args)
-    logging = TensorBoard(log_dir=args.checkpoint_dir)
-    checkpoint = ModelCheckpoint(os.path.join(args.checkpoint_dir + "%s_%s" % ("srcnn", args.label_size),
-                                              'ep{epoch:03d}-loss{loss:.3f}.h5'), monitor='loss', save_weights_only=True,
-                                 save_best_only=True, period=500)
+    current_time = datetime.datetime.now().strftime(('%Y%m%d-%H%M%S'))
+    log_dir = 'logs/' + current_time
+    summary_writer = tf.summary.create_file_writer(log_dir)
+    model_path = 'SRCNN.h5'
+    saved_model = tf.keras.callbacks.ModelCheckpoint(args.checkpoint_dir + 'ep{epoch:03d}-loss{loss:.3f}.h5', monitor='loss',
+                                                     save_weights_only=True, save_best_only=True, period=5)
+    tensorboard = tf.keras.callbacks.TensorBoard(log_dir='log')
     start_time = time.time()
-    srcnn.fit(train_data, train_label, batch_size=args.batch_size, epochs=args.epoch, callbacks=[logging, checkpoint])
+    history = srcnn.fit(train_data, train_label, batch_size=args.batch_size, epochs=args.epoch, callbacks=[saved_model, tensorboard])
     print('spending time:' + str(time.time() - start_time))
+    plot_graphs(history, "acc")
+    plot_graphs(history, "loss")
 else:
     nx, ny = input_setup(args)
     data_dir = 'checkpoint/test.h5'
-    weights_path = 'checkpoint/'
+    weights_path = 'SRCNN.h5'
     test_data, test_label = read_data(data_dir)
     srcnn = createmodel(args)
     srcnn.load_weights(weights_path)
