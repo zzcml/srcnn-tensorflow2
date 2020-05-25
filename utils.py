@@ -4,13 +4,14 @@ import h5py
 import scipy.misc
 import scipy.ndimage
 import numpy as np
+import imageio
 from absl import app, flags, logging
 import matplotlib.pyplot as plt
 from PIL import Image
 # from absl.flags import FLAGS
 import tensorflow as tf
 
-FLAGS = flags.FLAGS
+
 
 
 def read_data(path):
@@ -52,14 +53,14 @@ def preprocess(path, scale=3):
   return input_, label_
 
 
-def prepare_data(dataset):
+def prepare_data(args, dataset):
     """
     Args:
       dataset: choose train dataset or test dataset
 
       For train dataset, output data would be ['.../t1.bmp', '.../t2.bmp', ..., '.../t99.bmp']
     """
-    if FLAGS.is_train:
+    if args.is_train:
         filenames = os.listdir(dataset)
         data_dir = os.path.join(os.getcwd(), dataset)
         data = glob.glob(os.path.join(data_dir, "*.bmp"))
@@ -69,12 +70,12 @@ def prepare_data(dataset):
 
     return data
 
-def make_data(data, label):
+def make_data(args, data, label):
   """
   Make input data as h5 file format
   Depending on 'is_train' (flag value), savepath would be changed.
   """
-  if FLAGS.is_train:
+  if args.is_train:
     savepath = os.path.join(os.getcwd(), 'checkpoint/train.h5')
   else:
     savepath = os.path.join(os.getcwd(), 'checkpoint/test.h5')
@@ -90,9 +91,9 @@ def imread(path, is_grayscale=True):
     Default value is gray-scale, and image is read by YCbCr format as the paper said.
     """
     if is_grayscale:
-        return scipy.misc.imread(path, flatten=True, mode='YCbCr').astype(np.float)
+        return imageio.imread(path, as_gray=True, pilmode='YCbCr').astype(np.float)
     else:
-        return scipy.misc.imread(path, mode='YCbCr').astype(np.float)
+        return imageio.imread(path, pilmode='YCbCr').astype(np.float)
 
 
 def modcrop(image, scale=3):
@@ -116,44 +117,44 @@ def modcrop(image, scale=3):
     return image
 
 
-def input_setup(config):
+def input_setup(args):
     """
     Read image files and make their sub-images and saved them as a h5 file format.
     """
     # Load data path
-    if config.is_train:
-        data = prepare_data(dataset="Train")
+    if args.is_train:
+        data = prepare_data(args, dataset="Train")
     else:
-        data = prepare_data(dataset="Test")
+        data = prepare_data(args, dataset="Test")
 
     sub_input_sequence = []
     sub_label_sequence = []
-    padding = abs(config.image_size - config.label_size) / 2  # 6
+    padding = abs(args.image_size - args.label_size) / 2  # 6
 
-    if config.is_train:
+    if args.is_train:
         for i in range(len(data)):
-            input_, label_ = preprocess(data[i], config.scale)
+            input_, label_ = preprocess(data[i], args.scale)
 
             if len(input_.shape) == 3:
                 h, w, _ = input_.shape
             else:
                 h, w = input_.shape
 
-            for x in range(0, h - config.image_size + 1, config.stride):
-                for y in range(0, w - config.image_size + 1, config.stride):
-                    sub_input = input_[x:x + config.image_size, y:y + config.image_size]  # [33 x 33]
-                    sub_label = label_[x + int(padding):x + int(padding) + config.label_size,
-                                y + int(padding):y + int(padding) + config.label_size]  # [21 x 21]
+            for x in range(0, h - args.image_size + 1, args.stride):
+                for y in range(0, w - args.image_size + 1, args.stride):
+                    sub_input = input_[x:x + args.image_size, y:y + args.image_size]  # [33 x 33]
+                    sub_label = label_[x + int(padding):x + int(padding) + args.label_size,
+                                y + int(padding):y + int(padding) + args.label_size]  # [21 x 21]
 
                     # Make channel value
-                    sub_input = sub_input.reshape([config.image_size, config.image_size, 1])
-                    sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+                    sub_input = sub_input.reshape([args.image_size, args.image_size, 1])
+                    sub_label = sub_label.reshape([args.label_size, args.label_size, 1])
 
                     sub_input_sequence.append(sub_input)
                     sub_label_sequence.append(sub_label)
 
     else:
-        input_, label_ = preprocess(data[0], config.scale)
+        input_, label_ = preprocess(data[0], args.scale)
 
         if len(input_.shape) == 3:
             h, w, _ = input_.shape
@@ -162,17 +163,17 @@ def input_setup(config):
 
         # Numbers of sub-images in height and width of image are needed to compute merge operation.
         nx = ny = 0
-        for x in range(0, h - config.image_size + 1, config.stride):
+        for x in range(0, h - args.image_size + 1, args.stride):
             nx += 1
             ny = 0
-            for y in range(0, w - config.image_size + 1, config.stride):
+            for y in range(0, w - args.image_size + 1, args.stride):
                 ny += 1
-                sub_input = input_[x:x + config.image_size, y:y + config.image_size]  # [33 x 33]
-                sub_label = label_[x + int(padding):x + int(padding) + config.label_size,
-                            y + int(padding):y + int(padding) + config.label_size]  # [21 x 21]
+                sub_input = input_[x:x + args.image_size, y:y + args.image_size]  # [33 x 33]
+                sub_label = label_[x + int(padding):x + int(padding) + args.label_size,
+                            y + int(padding):y + int(padding) + args.label_size]  # [21 x 21]
 
-                sub_input = sub_input.reshape([config.image_size, config.image_size, 1])
-                sub_label = sub_label.reshape([config.label_size, config.label_size, 1])
+                sub_input = sub_input.reshape([args.image_size, args.image_size, 1])
+                sub_label = sub_label.reshape([args.label_size, args.label_size, 1])
 
                 sub_input_sequence.append(sub_input)
                 sub_label_sequence.append(sub_label)
@@ -185,14 +186,14 @@ def input_setup(config):
     arrdata = np.asarray(sub_input_sequence)  # [?, 33, 33, 1]
     arrlabel = np.asarray(sub_label_sequence)  # [?, 21, 21, 1]
 
-    make_data(arrdata, arrlabel)
+    make_data(args, arrdata, arrlabel)
 
-    if not config.is_train:
+    if not args.is_train:
         return nx, ny
 
 
 def imsave(image, path):
-    return scipy.misc.imsave(path, image)
+    return imageio.imsave(path, image)
 
 
 def merge(images, size):
