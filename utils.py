@@ -205,3 +205,11 @@ def merge(images, size):
         img[j * h:j * h + h, i * w:i * w + w, :] = image
 
     return img
+
+def get_last_weights(weights_path):
+    weights_path = glob.glob(weights_path + f'/*.h5')
+    weights_path = sorted(weights_path,
+                          key=lambda x: int(x.rsplit('_')[-1].rsplit('.')[0]),
+                          reverse=True)[0]
+    print(f'using weights {weights_path}')
+    return weights_path
