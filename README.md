@@ -4,6 +4,8 @@ Tensorflow implementation of Convolutional Neural Networks for super-resolution.
 Download training and test data from [baiduyun](https://pan.baidu.com/s/1QuIx2FlxowxAzr_-rrPGYQ) code: dtvj
 Then create a new profile named 'checkpoint' and put data into it.
 ### Don't need download the data anymore, i have achive make own datasets by use a function 'input_setup', just put image in profile 'Train' and 'Test' is OK.
+## pretrain
+Set 'load_weights' 'last' or model filename
 ## Prerequisites
  * Tensorflow 2.1
  * Scipy version > 0.18 ('mode' option from scipy.misc.imread function)
