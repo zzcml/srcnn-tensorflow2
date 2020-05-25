@@ -5,7 +5,7 @@ Download training and test data from [baiduyun](https://pan.baidu.com/s/1QuIx2Fl
 Then create a new profile named 'checkpoint' and put data into it.
 ### Don't need download the data anymore, i have achive make own datasets by use a function 'input_setup', just put image in profile 'Train' and 'Test' is OK.
 ## pretrain
-Set 'load_weights' 'last' or model filename
+Set 'load_weights' 'last' or model filename to continue the previously interrupted training.
 ## Prerequisites
  * Tensorflow 2.1
  * Scipy version > 0.18 ('mode' option from scipy.misc.imread function)
